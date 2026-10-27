@@ -1,4 +1,4 @@
-# 🔪 Would You Survive the Chase?
+# Would You Survive the Chase?
 
 A horror-survival personality quiz built with TypeScript for the **Advanced JavaScript and TypeScript** course.
 
@@ -6,7 +6,7 @@ A horror-survival personality quiz built with TypeScript for the **Advanced Java
 
 Each question puts you in a scary situation, like being chased in the dark or hearing footsteps behind you, and asks what you would do. There are no right answers, it's just for fun.
 
-Every choice is worth points, and your points decide which survivor you are:
+Every answer gives points to one survivor type, and the survivor with the most points is your result:
 
 | Survivor     | Style                         |
 | ------------ | ----------------------------- |
@@ -15,27 +15,28 @@ Every choice is worth points, and your points decide which survivor you are:
 | The Sprinter | Runs without thinking         |
 | The Fighter  | Turns around and swings first |
 
+## What I Built
+
+- `types.ts`: an `OutcomeId` union, an `Outcome` with an id, a `Question` union of three kinds (choice, scale, yes/no) that point at an outcome, and an `Answer` union to match
+- `data.ts`: the four survivor outcomes and the survival questions
+- `quiz.ts`: `show` prints a question and `recap` writes one sentence about an answer
+- `session.ts`: a `Session` class that keeps a tally per outcome, moves from waiting to asking to done, picks the result, and keeps the reasons behind each outcome so `explain` can say why you got your result
+- `index.ts`: runs the quiz with hard-coded answers and prints the result and the reasons
+
 ## Current Stage
 
-The project is at the first stage: a single typed program that picks a result from answers it already has. It prints the question, the choice that was picked with its points, and a result card for the matching survivor.
+The quiz shows every question, records the hard-coded answers in a session, and picks the survivor with the most points. It then prints a result card and the reasons for it.
 
 Example output:
 
 ```text
-You chose Run as fast as I can (2 points)
-The Sprinter
+You are: The Sprinter
 Smart and fast. You never wait to find out what happens.
+
+You got this because:
+- A stranger with a knife starts chasing you down a dark street. What do you do? You chose Run as fast as I can.
+- How likely are you to bolt the moment you sense danger? You rated it 4 out of 5.
 ```
-
-## Roadmap
-
-As the course goes on, the quiz will grow in stages:
-
-1. A single typed program (current)
-2. A monorepo so the parts can share code
-3. A command-line program that reads questions from files
-4. A backend that provides the quiz data and evaluates answers, with a command-line client
-5. A browser client for the same backend
 
 ## Getting Started
 

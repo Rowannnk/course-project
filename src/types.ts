@@ -1,5 +1,14 @@
+export type OutcomeId = "believer" | "hider" | "sprinter" | "fighter"
+
+export interface Outcome {
+  id: OutcomeId
+  title: string
+  description: string
+}
+
 export interface Choice {
   label: string
+  outcome: OutcomeId
   points: number
 }
 
@@ -16,10 +25,12 @@ interface ScaleQuestion extends BaseQuestion {
   kind: "scale"
   low: string
   high: string
+  outcome: OutcomeId
 }
 
 interface YesNoQuestion extends BaseQuestion {
   kind: "yesno"
+  outcome: OutcomeId
 }
 
 export type Question = ChoiceQuestion | ScaleQuestion | YesNoQuestion
@@ -40,8 +51,3 @@ interface YesNoAnswer {
 }
 
 export type Answer = ChoiceAnswer | ScaleAnswer | YesNoAnswer
-
-export interface Outcome {
-  title: string
-  description: string
-}
