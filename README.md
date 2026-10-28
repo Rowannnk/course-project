@@ -17,25 +17,39 @@ Every answer gives points to one survivor type, and the survivor with the most p
 
 ## What I Built
 
-- `types.ts`: an `OutcomeId` union, an `Outcome` with an id, a `Question` union of three kinds (choice, scale, yes/no) that point at an outcome, and an `Answer` union to match
-- `data.ts`: the four survivor outcomes and the survival questions
-- `quiz.ts`: `show` prints a question and `recap` writes one sentence about an answer
-- `session.ts`: a `Session` class that keeps a tally per outcome, moves from waiting to asking to done, picks the result, and keeps the reasons behind each outcome so `explain` can say why you got your result
-- `index.ts`: runs the quiz with hard-coded answers and prints the result and the reasons
+- `lib/types.ts`: an `OutcomeId` union, an `Outcome` with an id, a `Question` union of three kinds (choice, scale, yes/no) with an optional hint, an `Answer` union to match, and a `Quiz` that holds the outcomes and questions
+- `lib/quiz.ts`: `show` prints a question (with its hint, if hints are on) and `recap` writes one sentence about an answer
+- `lib/session.ts`: a `Session` class that keeps a tally per outcome, moves from waiting to asking to done, picks the result, and keeps the reasons behind each outcome so `explain` can say why you got your result
+- `lib/load.ts`: loads a saved game and saved settings from text. Guards (`isSavedGame`, `isSettings`, `isAnswer`, `isChoice`) check every piece, so a bad save is rejected with its own message
+- `data.ts`: the four survivor outcomes and the survival questions, exported as a read-only quiz
+- `saved.ts`: a saved game (the answers and a start time) and saved settings (a name and whether to show hints)
+- `index.ts`: loads the settings, greets the player, plays the saved game, prints the result and the reasons, and shows what happens with broken saves
 
 ## Current Stage
 
-The quiz shows every question, records the hard-coded answers in a session, and picks the survivor with the most points. It then prints a result card and the reasons for it.
+The quiz loads saved settings and greets the player by name. It then loads a saved game, records the answers in a session, and picks the survivor with the most points. Hints are shown only when the settings allow them. At the end it prints a result card and the reasons for it, then tries three broken saves to show that each kind of failure has its own error message.
 
 Example output:
 
 ```text
+Hello, Survivor
+A stranger with a knife starts chasing you down a dark street. What do you do?
+  1. Close my eyes and pray
+  2. Hide behind a car and stay quiet
+  3. Run as fast as I can
+  4. Turn around and fight back
+Answer worth 3 points for sprinter
+...
 You are: The Sprinter
 Smart and fast. You never wait to find out what happens.
 
 You got this because:
 - A stranger with a knife starts chasing you down a dark street. What do you do? You chose Run as fast as I can.
 - How likely are you to bolt the moment you sense danger? You rated it 4 out of 5.
+
+The saved game is missing a piece or has the wrong kind of piece
+The saved settings need a name and, if present, a true or false hints
+The saved settings are not valid text
 ```
 
 ## Getting Started

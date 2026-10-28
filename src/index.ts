@@ -1,28 +1,25 @@
-import { outcomes, questions } from "./data.ts"
-import { show } from "./quiz.ts"
-import { Session } from "./session.ts"
-import { type Answer } from "./types.ts"
+import { quiz } from "./data.ts"
+import { loadSavedGame, loadSettings } from "./lib/load.ts"
+import { show } from "./lib/quiz.ts"
+import { Session } from "./lib/session.ts"
+import { savedGame, savedSettings } from "./saved.ts"
 
-const answers: Answer[] = [
-  {
-    kind: "choice",
-    picked: { label: "Run as fast as I can", outcome: "sprinter", points: 3 },
-  },
-  { kind: "scale", value: 4 },
-  { kind: "yesno", value: true },
-]
+const settings = loadSettings(savedSettings)
 
-const session = new Session(outcomes)
+console.log(`Hello, ${settings.name}`)
+
+const session = new Session(quiz.outcomes)
+const { answers } = loadSavedGame(savedGame)
 
 session.start()
 
-for (const index in questions) {
-  const question = questions[index]
+for (const index in quiz.questions) {
+  const question = quiz.questions[index]
   const answer = answers[index]
 
   const { outcome, points } = session.record(question, answer)
 
-  console.log(show(question))
+  console.log(show(question, settings.hints !== false))
   console.log(`Answer worth ${points} points for ${outcome}`)
 }
 
@@ -38,4 +35,30 @@ console.log("You got this because:")
 
 for (const reason of session.explain()) {
   console.log(`- ${reason}`)
+}
+
+console.log("")
+
+try {
+  loadSavedGame('{"answers":[{"kind":"scale","value":"five"}]}')
+} catch (error) {
+  if (error instanceof Error) {
+    console.log(error.message)
+  }
+}
+
+try {
+  loadSettings('{"hints":"yes"}')
+} catch (error) {
+  if (error instanceof Error) {
+    console.log(error.message)
+  }
+}
+
+try {
+  loadSettings("not valid text")
+} catch (error) {
+  if (error instanceof Error) {
+    console.log(error.message)
+  }
 }
