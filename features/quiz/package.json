@@ -1,0 +1,22 @@
+{
+  "name": "quiz",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "lint": "pnpm run \"/^lint-.*/\"",
+    "lint-typecheck": "tsc --noEmit",
+    "lint-eslint": "eslint .",
+    "lint-prettier": "prettier --check .",
+    "lint-knip": "knip --directory ../.. --workspace features/quiz",
+    "format": "prettier --write .",
+    "start": "node ."
+  },
+  "devDependencies": {
+    "eslint": "catalog:",
+    "knip": "catalog:",
+    "prettier": "catalog:",
+    "tooling": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

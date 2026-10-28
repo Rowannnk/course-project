@@ -15,7 +15,19 @@ Every answer gives points to one survivor type, and the survivor with the most p
 | The Sprinter | Runs without thinking         |
 | The Fighter  | Turns around and swings first |
 
+## Workspace
+
+The project is a pnpm workspace managed with Nx:
+
+- `features/quiz`: the quiz package
+- `internal/tooling`: the shared TypeScript, Prettier and ESLint settings, which the quiz package uses through `workspace:*`
+- `.github/workflows/quiz.yml`: runs the checks on GitHub when the quiz or the tooling changes
+
+The tools every package needs (ESLint, knip, Prettier and TypeScript) are pinned once in the catalog in `pnpm-workspace.yaml`.
+
 ## What I Built
+
+All of the quiz code is in `features/quiz/src`:
 
 - `lib/types.ts`: an `OutcomeId` union, an `Outcome` with an id, a `Question` union of three kinds (choice, scale, yes/no) with an optional hint, an `Answer` union to match, and a `Quiz` that holds the outcomes and questions
 - `lib/quiz.ts`: `show` prints a question (with its hint, if hints are on) and `recap` writes one sentence about an answer
@@ -24,6 +36,8 @@ Every answer gives points to one survivor type, and the survivor with the most p
 - `data.ts`: the four survivor outcomes and the survival questions, exported as a read-only quiz
 - `saved.ts`: a saved game (the answers and a start time) and saved settings (a name and whether to show hints)
 - `index.ts`: loads the settings, greets the player, plays the saved game, prints the result and the reasons, and shows what happens with broken saves
+
+The shared settings live in `internal/tooling`: a TypeScript base config, a Prettier config, and an ESLint config that takes the directory of the package being linted.
 
 ## Current Stage
 
@@ -55,15 +69,16 @@ The saved settings are not valid text
 ## Getting Started
 
 ```bash
-npm install
-npm start
+pnpm install
+pnpm --filter quiz start
 ```
 
-## Tooling
+## Checks
 
-| Tool       | Command             | Purpose                             |
-| ---------- | ------------------- | ----------------------------------- |
-| TypeScript | `npm run typecheck` | Checks types without emitting files |
-| ESLint     | `npm run lint`      | Finds code problems                 |
-| Prettier   | `npm run format`    | Formats code consistently           |
-| Run        | `npm start`         | Runs `src/index.ts`                 |
+| Command                     | What it does                                                  |
+| --------------------------- | ------------------------------------------------------------- |
+| `pnpm lint`                 | Runs every check in every package through Nx, `tooling` first |
+| `pnpm nx graph`             | Shows how the packages depend on each other                   |
+| `pnpm --filter quiz format` | Formats the quiz package with Prettier                        |
+
+`pnpm lint` runs four checks in each package: TypeScript (`tsc --noEmit`), ESLint, Prettier and knip. Knip runs from the workspace root (`--directory ../..`) so that it can read the catalog in `pnpm-workspace.yaml`.

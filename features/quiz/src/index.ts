@@ -13,8 +13,7 @@ const { answers } = loadSavedGame(savedGame)
 
 session.start()
 
-for (const index in quiz.questions) {
-  const question = quiz.questions[index]
+for (const [index, question] of quiz.questions.entries()) {
   const answer = answers[index]
 
   const { outcome, points } = session.record(question, answer)

@@ -1,27 +1,22 @@
 {
-  "name": "course-project",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsx src/index.ts",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+  "name": "quiz-workspace",
+  "version": "0.0.0",
+  "private": true,
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^12.16.1",
+      "onFail": "download"
+    }
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
+  "scripts": {
+    "lint": "nx run-many -t lint",
+    "lint-typecheck": "nx run-many -t lint-typecheck",
+    "lint-eslint": "nx run-many -t lint-eslint",
+    "lint-prettier": "nx run-many -t lint-prettier",
+    "lint-knip": "nx run-many -t lint-knip"
+  },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "eslint": "^10.13.0",
-    "eslint-config-prettier": "^10.1.8",
-    "prettier": "^3.9.10",
-    "tsx": "^4.23.15",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.72.0"
+    "nx": "24.0.2"
   }
 }

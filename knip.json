@@ -1,0 +1,9 @@
+{
+  "workspaces": {
+    "features/quiz": {
+      "project": ["src/**/*.ts"],
+      "ignoreExportsUsedInFile": true
+    },
+    "internal/tooling": {}
+  }
+}
