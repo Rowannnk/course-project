@@ -1,14 +1,32 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { quiz } from "@platform/quiz/data"
+import path from "node:path"
+
 import { countKinds as kinds, outline } from "@platform/quiz/outline"
-import { Session, show } from "@platform/quiz/play"
-import { loadSavedGame, loadSettings } from "@platform/quiz/saved"
+import { type Quiz, type Settings, Session, show } from "@platform/quiz/play"
+import { loadQuiz } from "@platform/quiz/quizzes"
+import {
+  readSavedGame,
+  readSettings,
+  type SavedGame,
+} from "@platform/quiz/saved"
 
-import { savedGame, savedSettings } from "./saved.ts"
+let quiz: Quiz
+let settings: Settings
+let game: SavedGame
 
-const settings = loadSettings(savedSettings)
+try {
+  quiz = await loadQuiz("survival")
+  settings = await readSettings(
+    path.join(import.meta.dirname, "..", "saved", "settings.json"),
+  )
+  game = await readSavedGame(
+    path.join(import.meta.dirname, "..", "saved", "game.json"),
+  )
+} catch (error) {
+  console.error(error instanceof Error ? error.message : error)
+  process.exit(1)
+}
 
 console.log(`Hello, ${settings.name}`)
 console.log("")
@@ -29,7 +47,7 @@ console.log(`Kinds: ${counts}`)
 console.log("")
 
 const session = new Session(quiz.outcomes)
-const { answers } = loadSavedGame(savedGame)
+const { answers } = game
 
 session.start()
 
@@ -54,30 +72,4 @@ console.log("You got this because:")
 
 for (const reason of session.explain()) {
   console.log(`- ${reason}`)
-}
-
-console.log("")
-
-try {
-  loadSavedGame('{"answers":[{"kind":"scale","value":"five"}]}')
-} catch (error) {
-  if (error instanceof Error) {
-    console.log(error.message)
-  }
-}
-
-try {
-  loadSettings('{"hints":"yes"}')
-} catch (error) {
-  if (error instanceof Error) {
-    console.log(error.message)
-  }
-}
-
-try {
-  loadSettings("not valid text")
-} catch (error) {
-  if (error instanceof Error) {
-    console.log(error.message)
-  }
 }

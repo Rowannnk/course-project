@@ -1,0 +1,15 @@
+{
+  "answers": [
+    {
+      "kind": "choice",
+      "picked": {
+        "label": "Run as fast as I can",
+        "outcome": "sprinter",
+        "points": 3
+      }
+    },
+    { "kind": "scale", "value": 4 },
+    { "kind": "yesno", "value": true }
+  ],
+  "startedAt": "2026-11-01T20:00:00.000Z"
+}

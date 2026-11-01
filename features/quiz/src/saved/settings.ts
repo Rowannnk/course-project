@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises"
+
 import { isSettings, type Settings } from "../play/index.ts"
 
 export function loadSettings(saved: string): Settings {
@@ -16,4 +18,10 @@ export function loadSettings(saved: string): Settings {
   }
 
   return value
+}
+
+export async function readSettings(file: string): Promise<Settings> {
+  const text = await readFile(file, "utf8")
+
+  return loadSettings(text)
 }

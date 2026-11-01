@@ -1,7 +1,7 @@
-import { type Answer, type OutcomeId, type Question } from "./types.ts"
+import { type Answer, type Question } from "./types.ts"
 
 export interface Award {
-  outcome: OutcomeId
+  outcome: string
   points: number
 }
 

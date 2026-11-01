@@ -1,33 +1,22 @@
 import { award, recap, type Award } from "./quiz.ts"
-import {
-  type Answer,
-  type Outcome,
-  type OutcomeId,
-  type Question,
-} from "./types.ts"
+import { type Answer, type Outcome, type Question } from "./types.ts"
 
 export type Status = "waiting" | "asking" | "done"
 
 export class Session {
-  private tally: Record<OutcomeId, number> = {
-    believer: 0,
-    hider: 0,
-    sprinter: 0,
-    fighter: 0,
-  }
-
-  private reasons: Record<OutcomeId, string[]> = {
-    believer: [],
-    hider: [],
-    sprinter: [],
-    fighter: [],
-  }
+  private tally: Record<string, number> = {}
+  private reasons: Record<string, string[]> = {}
 
   private outcomes: Outcome[]
   private status: Status = "waiting"
 
   constructor(outcomes: Outcome[]) {
     this.outcomes = outcomes
+
+    for (const outcome of outcomes) {
+      this.tally[outcome.id] = 0
+      this.reasons[outcome.id] = []
+    }
   }
 
   public start(): void {
