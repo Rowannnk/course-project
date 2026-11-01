@@ -19,34 +19,48 @@ Every answer gives points to one survivor type, and the survivor with the most p
 
 The project is a pnpm workspace managed with Nx:
 
-- `features/quiz`: the quiz package
-- `internal/tooling`: the shared TypeScript, Prettier and ESLint settings, which the quiz package uses through `workspace:*`
-- `.github/workflows/quiz.yml`: runs the checks on GitHub when the quiz or the tooling changes
+- `apps/cli` (`@platform/cli`): the command-line script. It uses the quiz package only through its exports
+- `features/quiz` (`@platform/quiz`): the quiz code, in folders that other code reaches only through their indexes
+- `internal/tooling` (`@platform/tooling`): the shared TypeScript, Prettier and ESLint settings, which the other packages use through `workspace:*`
+- `.github/workflows/quiz.yml`: runs the checks on GitHub when anything in `apps`, `features` or `internal` changes
 
 The tools every package needs (ESLint, knip, Prettier and TypeScript) are pinned once in the catalog in `pnpm-workspace.yaml`.
 
 ## What I Built
 
-All of the quiz code is in `features/quiz/src`:
+The quiz package has an `exports` map, so the CLI can import `@platform/quiz/data`, `@platform/quiz/play`, `@platform/quiz/saved` and `@platform/quiz/outline`, and nothing inside those folders. A path like `@platform/quiz/play/session` is not found.
 
-- `lib/types.ts`: an `OutcomeId` union, an `Outcome` with an id, a `Question` union of three kinds (choice, scale, yes/no) with an optional hint, an `Answer` union to match, and a `Quiz` that holds the outcomes and questions
-- `lib/quiz.ts`: `show` prints a question (with its hint, if hints are on) and `recap` writes one sentence about an answer
-- `lib/session.ts`: a `Session` class that keeps a tally per outcome, moves from waiting to asking to done, picks the result, and keeps the reasons behind each outcome so `explain` can say why you got your result
-- `lib/load.ts`: loads a saved game and saved settings from text. Guards (`isSavedGame`, `isSettings`, `isAnswer`, `isChoice`) check every piece, so a bad save is rejected with its own message
+In `features/quiz/src`:
+
 - `data.ts`: the four survivor outcomes and the survival questions, exported as a read-only quiz
+- `play/`: the types (`Question` and `Answer` unions, `Outcome`, `Quiz`, `Settings`), `show` and `recap`, `award`, the `Session` class (tally, status, result and `explain`), and the guards `isAnswer`, `isChoice` and `isSettings`
+- `saved/`: `loadSavedGame` and `loadSettings`, which reject a bad save with its own message
+- `outline/`: `outline` (one line per question with its number, text and kind) and `countKinds` (how many questions of each kind)
+
+In `apps/cli/src`:
+
 - `saved.ts`: a saved game (the answers and a start time) and saved settings (a name and whether to show hints)
-- `index.ts`: loads the settings, greets the player, plays the saved game, prints the result and the reasons, and shows what happens with broken saves
+- `index.ts`: loads the settings and greets the player, prints the outline and the count of each kind, plays the saved game, prints the result and the reasons, and shows what happens with broken saves
 
 The shared settings live in `internal/tooling`: a TypeScript base config, a Prettier config, and an ESLint config that takes the directory of the package being linted.
 
 ## Current Stage
 
-The quiz loads saved settings and greets the player by name. It then loads a saved game, records the answers in a session, and picks the survivor with the most points. Hints are shown only when the settings allow them. At the end it prints a result card and the reasons for it, then tries three broken saves to show that each kind of failure has its own error message.
+The CLI loads the settings, greets the player, and prints an outline of the quiz. It then plays a saved game, picks the survivor with the most points, and prints the result with the reasons for it. At the end it tries three broken saves to show that each kind of failure has its own error message.
 
 Example output:
 
 ```text
 Hello, Survivor
+
+## Outline
+
+1. A stranger with a knife starts chasing you down a dark street. What do you do? (choice, 4 options)
+2. How likely are you to bolt the moment you sense danger? (scale)
+3. Would you go down to the basement to check a strange noise? (yes or no)
+
+Kinds: choice 1, scale 1, yesno 1
+
 A stranger with a knife starts chasing you down a dark street. What do you do?
   1. Close my eyes and pray
   2. Hide behind a car and stay quiet
@@ -70,15 +84,15 @@ The saved settings are not valid text
 
 ```bash
 pnpm install
-pnpm --filter quiz start
+pnpm start
 ```
 
 ## Checks
 
-| Command                     | What it does                                                  |
-| --------------------------- | ------------------------------------------------------------- |
-| `pnpm lint`                 | Runs every check in every package through Nx, `tooling` first |
-| `pnpm nx graph`             | Shows how the packages depend on each other                   |
-| `pnpm --filter quiz format` | Formats the quiz package with Prettier                        |
+| Command         | What it does                                                          |
+| --------------- | --------------------------------------------------------------------- |
+| `pnpm lint`     | Runs every check in every package through Nx, `tooling` first         |
+| `pnpm -r format`| Formats every package with Prettier                                   |
+| `pnpm nx graph` | Shows how the packages depend on each other                           |
 
 `pnpm lint` runs four checks in each package: TypeScript (`tsc --noEmit`), ESLint, Prettier and knip. Knip runs from the workspace root (`--directory ../..`) so that it can read the catalog in `pnpm-workspace.yaml`.

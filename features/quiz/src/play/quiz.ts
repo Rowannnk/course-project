@@ -1,4 +1,9 @@
-import { type Answer, type Question } from "./types.ts"
+import { type Answer, type OutcomeId, type Question } from "./types.ts"
+
+export interface Award {
+  outcome: OutcomeId
+  points: number
+}
 
 export function show(question: Question, hints: boolean = true): string {
   const hint = hints && question.hint ? `\nHint: ${question.hint}` : ""
@@ -45,6 +50,26 @@ export function recap(question: Question, answer: Answer): string {
     }
 
     return `${question.text} You said ${answer.value ? "yes" : "no"}.`
+  }
+
+  throw new Error("Unknown kind")
+}
+
+export function award(question: Question, answer: Answer): Award {
+  if (question.kind !== answer.kind) {
+    throw new Error("The answer does not match the question")
+  }
+
+  if (question.kind === "choice" && answer.kind === "choice") {
+    return { outcome: answer.picked.outcome, points: answer.picked.points }
+  }
+
+  if (question.kind === "scale" && answer.kind === "scale") {
+    return { outcome: question.outcome, points: answer.value }
+  }
+
+  if (question.kind === "yesno" && answer.kind === "yesno") {
+    return { outcome: question.outcome, points: answer.value ? 1 : 0 }
   }
 
   throw new Error("Unknown kind")

@@ -1,6 +1,11 @@
 {
   "workspaces": {
     "features/quiz": {
+      "entry": ["src/data.ts", "src/*/index.ts"],
+      "project": ["src/**/*.ts"],
+      "ignoreExportsUsedInFile": true
+    },
+    "apps/cli": {
       "project": ["src/**/*.ts"],
       "ignoreExportsUsedInFile": true
     },

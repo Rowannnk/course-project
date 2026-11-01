@@ -1,4 +1,4 @@
-import { recap } from "./quiz.ts"
+import { award, recap, type Award } from "./quiz.ts"
 import {
   type Answer,
   type Outcome,
@@ -7,11 +7,6 @@ import {
 } from "./types.ts"
 
 export type Status = "waiting" | "asking" | "done"
-
-export interface Award {
-  outcome: OutcomeId
-  points: number
-}
 
 export class Session {
   private tally: Record<OutcomeId, number> = {
@@ -94,24 +89,4 @@ export class Session {
 
     return [...this.reasons[this.result().id]]
   }
-}
-
-function award(question: Question, answer: Answer): Award {
-  if (question.kind !== answer.kind) {
-    throw new Error("The answer does not match the question")
-  }
-
-  if (question.kind === "choice" && answer.kind === "choice") {
-    return { outcome: answer.picked.outcome, points: answer.picked.points }
-  }
-
-  if (question.kind === "scale" && answer.kind === "scale") {
-    return { outcome: question.outcome, points: answer.value }
-  }
-
-  if (question.kind === "yesno" && answer.kind === "yesno") {
-    return { outcome: question.outcome, points: answer.value ? 1 : 0 }
-  }
-
-  throw new Error("Unknown kind")
 }

@@ -1,1 +1,1 @@
-export { default } from "tooling/prettier"
+export { default } from "@platform/tooling/prettier"
