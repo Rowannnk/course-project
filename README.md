@@ -84,7 +84,10 @@ The saved settings are not valid text
 
 ```bash
 pnpm install
-pnpm start
+pnpm --filter @platform/cli start play          # You can answer the quiz by prompt
+pnpm --filter @platform/cli start play -n Bo    # You can greet someone by name
+pnpm --filter @platform/cli start replay        # You can replay the saved answers
+pnpm --filter @platform/cli start --help        # You can list the commands
 ```
 
 ## Checks
