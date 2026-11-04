@@ -1,11 +1,16 @@
-import { type Answer, type Question } from "./types.ts"
+import {
+  type Answer,
+  type Prompt,
+  type Question,
+  type Submission,
+} from "./types.ts"
 
 export interface Award {
   outcome: string
   points: number
 }
 
-export function show(question: Question, hints: boolean = true): string {
+export function show(question: Prompt, hints: boolean = true): string {
   const hint = hints && question.hint ? `\nHint: ${question.hint}` : ""
 
   if (question.kind === "choice") {
@@ -27,7 +32,7 @@ export function show(question: Question, hints: boolean = true): string {
   throw new Error("Unknown kind")
 }
 
-export function recap(question: Question, answer: Answer): string {
+export function recap(question: Prompt, answer: Submission): string {
   if (answer.kind === "choice") {
     if (question.kind !== "choice") {
       throw new Error("Question and answer are not the same kind")

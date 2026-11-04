@@ -1,7 +1,9 @@
 import { countKinds as kinds, outline } from "@platform/quiz/outline"
-import { type Quiz, type Session } from "@platform/quiz/play"
+import { type Prompt, recap, type Submission } from "@platform/quiz/play"
 
-export function printIntro(name: string, quiz: Quiz): void {
+import { type PromptQuiz, type Result } from "./api.ts"
+
+export function printIntro(name: string, quiz: PromptQuiz): void {
   console.log(`Hello, ${name}`)
   console.log("")
   console.log("## Outline")
@@ -21,18 +23,28 @@ export function printIntro(name: string, quiz: Quiz): void {
   console.log("")
 }
 
-export function printResult(session: Session): void {
-  session.finish()
+export function printRecap(prompts: Prompt[], submissions: Submission[]): void {
+  console.log("## Recap")
+  console.log("")
 
-  const result = session.result()
+  for (const [index, prompt] of prompts.entries()) {
+    console.log(recap(prompt, submissions[index]))
+  }
 
+  console.log("")
+}
+
+export function printResult(result: Result): void {
+  console.log("## Result")
+  console.log("")
   console.log(`You are: ${result.title}`)
   console.log(result.description)
-
   console.log("")
   console.log("You got this because:")
 
-  for (const reason of session.explain()) {
+  for (const reason of result.reasons) {
     console.log(`- ${reason}`)
   }
+
+  console.log("")
 }

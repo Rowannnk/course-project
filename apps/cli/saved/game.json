@@ -1,13 +1,6 @@
 {
   "answers": [
-    {
-      "kind": "choice",
-      "picked": {
-        "label": "Run as fast as I can",
-        "outcome": "sprinter",
-        "points": 3
-      }
-    },
+    { "kind": "choice", "picked": { "label": "Run as fast as I can" } },
     { "kind": "scale", "value": 4 },
     { "kind": "yesno", "value": true }
   ],

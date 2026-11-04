@@ -1,8 +1,13 @@
-import { type Answer, recap, Session } from "@platform/quiz/play"
-import { loadQuiz } from "@platform/quiz/quizzes"
+import { type Submission } from "@platform/quiz/play"
 import { readSettings } from "@platform/quiz/saved"
 
-import { printIntro, printResult } from "../../lib/print.ts"
+import {
+  fetchQuiz,
+  fetchResult,
+  sendAnswer,
+  startSession,
+} from "../../lib/api.ts"
+import { printIntro, printRecap, printResult } from "../../lib/print.ts"
 import { locateSettings } from "../../lib/saved.ts"
 import { ask } from "./ask.ts"
 
@@ -14,37 +19,26 @@ export default async function play(
   quizName: string,
   options: Options,
 ): Promise<void> {
-  const quiz = await loadQuiz(quizName)
+  const quiz = await fetchQuiz(quizName)
   const settings = await readSettings(locateSettings())
 
   printIntro(options.name ?? settings.name, quiz)
 
-  const session = new Session(quiz.outcomes)
-  const answers: Answer[] = []
-
-  session.start()
+  const id = await startSession(quizName)
+  const submissions: Submission[] = []
 
   console.log("## Questions")
   console.log("")
 
-  for (const question of quiz.questions) {
-    const answer = await ask(settings, question)
-    const { outcome, points } = session.record(question, answer)
+  for (const prompt of quiz.questions) {
+    const submission = await ask(settings, prompt)
 
-    answers.push(answer)
+    await sendAnswer(id, submission)
+    submissions.push(submission)
 
-    console.log(`Your answer worth ${points} points for ${outcome}`)
     console.log("")
   }
 
-  console.log("## Recap")
-  console.log("")
-
-  for (const [index, question] of quiz.questions.entries()) {
-    console.log(recap(question, answers[index]))
-  }
-
-  console.log("")
-
-  printResult(session)
+  printRecap(quiz.questions, submissions)
+  printResult(await fetchResult(id))
 }

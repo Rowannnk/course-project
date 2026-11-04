@@ -2,9 +2,11 @@ import {
   type Answer,
   type Choice,
   type Outcome,
+  type PromptChoice,
   type Question,
   type Quiz,
   type Settings,
+  type Submission,
 } from "./types.ts"
 
 export function isQuiz(value: unknown): value is Quiz {
@@ -149,6 +151,47 @@ function isChoice(value: unknown): value is Choice {
   }
 
   if (!("points" in value) || typeof value.points !== "number") {
+    return false
+  }
+
+  return true
+}
+
+export function isSubmission(value: unknown): value is Submission {
+  if (typeof value !== "object" || value === null) {
+    return false
+  }
+
+  if (!("kind" in value) || typeof value.kind !== "string") {
+    return false
+  }
+
+  if (value.kind === "choice") {
+    return "picked" in value && isPromptChoice(value.picked)
+  }
+
+  if (value.kind === "scale") {
+    return (
+      "value" in value &&
+      typeof value.value === "number" &&
+      value.value >= 1 &&
+      value.value <= 5
+    )
+  }
+
+  if (value.kind === "yesno") {
+    return "value" in value && typeof value.value === "boolean"
+  }
+
+  return false
+}
+
+export function isPromptChoice(value: unknown): value is PromptChoice {
+  if (typeof value !== "object" || value === null) {
+    return false
+  }
+
+  if (!("label" in value) || typeof value.label !== "string") {
     return false
   }
 
