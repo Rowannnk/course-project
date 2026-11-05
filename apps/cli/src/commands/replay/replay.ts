@@ -1,17 +1,17 @@
 import { show } from "@platform/quiz/play"
 import { readSavedGame, readSettings } from "@platform/quiz/saved"
-
 import {
-  fetchQuiz,
-  fetchResult,
+  getQuiz,
+  getResult,
   sendAnswer,
   startSession,
-} from "../../lib/api.ts"
+} from "@platform/quiz/services"
+
 import { printIntro, printRecap, printResult } from "../../lib/print.ts"
 import { locateSavedGame, locateSettings } from "../../lib/saved.ts"
 
 export default async function replay(quizName: string): Promise<void> {
-  const quiz = await fetchQuiz(quizName)
+  const quiz = await getQuiz(quizName)
   const settings = await readSettings(locateSettings())
   const { answers } = await readSavedGame(locateSavedGame())
 
@@ -35,5 +35,5 @@ export default async function replay(quizName: string): Promise<void> {
   }
 
   printRecap(quiz.questions, answers)
-  printResult(await fetchResult(id))
+  printResult(await getResult(id))
 }

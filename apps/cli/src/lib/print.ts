@@ -1,9 +1,13 @@
 import { countKinds as kinds, outline } from "@platform/quiz/outline"
-import { type Prompt, recap, type Submission } from "@platform/quiz/play"
+import {
+  type Prompt,
+  type QuizResponse,
+  recap,
+  type ResultResponse,
+  type Submission,
+} from "@platform/quiz/play"
 
-import { type PromptQuiz, type Result } from "./api.ts"
-
-export function printIntro(name: string, quiz: PromptQuiz): void {
+export function printIntro(name: string, quiz: QuizResponse): void {
   console.log(`Hello, ${name}`)
   console.log("")
   console.log("## Outline")
@@ -34,7 +38,7 @@ export function printRecap(prompts: Prompt[], submissions: Submission[]): void {
   console.log("")
 }
 
-export function printResult(result: Result): void {
+export function printResult(result: ResultResponse): void {
   console.log("## Result")
   console.log("")
   console.log(`You are: ${result.title}`)

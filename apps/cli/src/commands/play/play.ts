@@ -1,12 +1,12 @@
 import { type Submission } from "@platform/quiz/play"
 import { readSettings } from "@platform/quiz/saved"
-
 import {
-  fetchQuiz,
-  fetchResult,
+  getQuiz,
+  getResult,
   sendAnswer,
   startSession,
-} from "../../lib/api.ts"
+} from "@platform/quiz/services"
+
 import { printIntro, printRecap, printResult } from "../../lib/print.ts"
 import { locateSettings } from "../../lib/saved.ts"
 import { ask } from "./ask.ts"
@@ -19,7 +19,7 @@ export default async function play(
   quizName: string,
   options: Options,
 ): Promise<void> {
-  const quiz = await fetchQuiz(quizName)
+  const quiz = await getQuiz(quizName)
   const settings = await readSettings(locateSettings())
 
   printIntro(options.name ?? settings.name, quiz)
@@ -40,5 +40,5 @@ export default async function play(
   }
 
   printRecap(quiz.questions, submissions)
-  printResult(await fetchResult(id))
+  printResult(await getResult(id))
 }

@@ -19,36 +19,64 @@ Every answer gives points to one survivor type, and the survivor with the most p
 
 The project is a pnpm workspace managed with Nx:
 
-- `apps/cli` (`@platform/cli`): the command-line script. It uses the quiz package only through its exports
+- `apps/api` (`@platform/api`): a Fastify server that serves a quiz without its scoring, scores the answers of a session, and sends back the result
+- `apps/cli` (`@platform/cli`): the command-line program, which plays a quiz through the API
 - `features/quiz` (`@platform/quiz`): the quiz code, in folders that other code reaches only through their indexes
 - `internal/tooling` (`@platform/tooling`): the shared TypeScript, Prettier and ESLint settings, which the other packages use through `workspace:*`
 - `.github/workflows/quiz.yml`: runs the checks on GitHub when anything in `apps`, `features` or `internal` changes
 
 The tools every package needs (ESLint, knip, Prettier and TypeScript) are pinned once in the catalog in `pnpm-workspace.yaml`.
 
+## How It Fits Together
+
+The points of every choice stay on the server. The CLI gets each question as a **prompt**, which is a question without its scoring, and sends each answer back as a **submission**, which names the choice it picked by its label. The server finds the real choice, scores it, and sends back the result and the reasons for it. The CLI never sees a point.
+
+Prompts and submissions are made from the real question and answer types with `Omit` and `Pick`, so they cannot drift apart from them.
+
+## The API
+
+The server listens on port 3000. A session id in the `x-session-id` header stands in for signing in.
+
+| Route                   | What it does                                  | Status codes                                  |
+| ----------------------- | --------------------------------------------- | --------------------------------------------- |
+| `GET /quizzes/:name`    | The questions of a quiz, without any scoring  | 200, 404                                      |
+| `POST /session`         | Starts a session for the quiz named in the body | 201 with `session_id`, 400, 404             |
+| `GET /session`          | How far the session has got (`answered`, `total`) | 200, 401                                  |
+| `POST /session/answer`  | Records the answer to the next question       | 204, 400, 401, 409                            |
+| `GET /session/result`   | The result and its reasons, once every question has an answer | 200, 401, 409             |
+
 ## What I Built
 
-The quiz package has an `exports` map, so the CLI can import `@platform/quiz/data`, `@platform/quiz/play`, `@platform/quiz/saved` and `@platform/quiz/outline`, and nothing inside those folders. A path like `@platform/quiz/play/session` is not found.
+The quiz package has an `exports` map, so other code can import `@platform/quiz/play`, `@platform/quiz/saved`, `@platform/quiz/outline`, `@platform/quiz/quizzes` and `@platform/quiz/services`, and nothing inside those folders. A path like `@platform/quiz/play/session` is not found.
 
 In `features/quiz/src`:
 
-- `data.ts`: the four survivor outcomes and the survival questions, exported as a read-only quiz
-- `play/`: the types (`Question` and `Answer` unions, `Outcome`, `Quiz`, `Settings`), `show` and `recap`, `award`, the `Session` class (tally, status, result and `explain`), and the guards `isAnswer`, `isChoice` and `isSettings`
-- `saved/`: `loadSavedGame` and `loadSettings`, which reject a bad save with its own message
+- `play/`: the types (`Question`, `Answer`, `Prompt`, `Submission`, `Outcome`, `Quiz`, `Settings` and the reply types), `show` and `recap`, `award`, the `Session` class (tally, status, result and `explain`), and the guards that check data from outside
+- `quizzes/`: the quiz itself in `survival.json`, and `loadQuiz`, which stops with a clear message when the file is missing, not valid JSON, or not shaped like a quiz
+- `saved/`: `loadSavedGame`, `loadSettings`, `readSavedGame` and `readSettings`, which reject a bad save with its own message
 - `outline/`: `outline` (one line per question with its number, text and kind) and `countKinds` (how many questions of each kind)
+- `services/`: `getQuiz`, `startSession`, `sendAnswer` and `getResult`, which hold the address of the server and turn the ways a request can fail into errors
 
-In `apps/cli/src`:
+In `apps/api/src`:
 
-- `saved.ts`: a saved game (the answers and a start time) and saved settings (a name and whether to show hints)
-- `index.ts`: loads the settings and greets the player, prints the outline and the count of each kind, plays the saved game, prints the result and the reasons, and shows what happens with broken saves
+- `routes/quizzes/`: the plugin for the quizzes
+- `routes/session/`: the plugin for the session, with its storage and the check that turns a submission into a real answer
+- `shared/quizzes/`: finds a quiz by name
+
+In `apps/cli`:
+
+- `src/commands/play/`: asks each question with a prompt that fits its kind, sends the answer to the server, and prints the result
+- `src/commands/replay/`: does the same with the answers saved in `saved/game.json`, without asking
+- `src/lib/`: where the settings and the saved game are, and the printing shared by both commands
+- `saved/`: the saved game (a submission for each question) and the settings (a name and whether to show hints)
 
 The shared settings live in `internal/tooling`: a TypeScript base config, a Prettier config, and an ESLint config that takes the directory of the package being linted.
 
 ## Current Stage
 
-The CLI loads the settings, greets the player, and prints an outline of the quiz. It then plays a saved game, picks the survivor with the most points, and prints the result with the reasons for it. At the end it tries three broken saves to show that each kind of failure has its own error message.
+`play` and `replay` get the quiz from the API, start a session, send each answer, and print the result the server sends back. An error stops the program with one message and the exit code 1: the server is not running, there is no such quiz, or a saved file is missing or broken. Cancelling a prompt with Ctrl+C exits quietly.
 
-Example output:
+Example output of `replay` (the answers come from `saved/game.json`):
 
 ```text
 Hello, Survivor
@@ -61,41 +89,60 @@ Hello, Survivor
 
 Kinds: choice 1, scale 1, yesno 1
 
+## Questions
+
 A stranger with a knife starts chasing you down a dark street. What do you do?
   1. Close my eyes and pray
   2. Hide behind a car and stay quiet
   3. Run as fast as I can
   4. Turn around and fight back
-Answer worth 3 points for sprinter
-...
+
+How likely are you to bolt the moment you sense danger? (1 = never, 5 = instantly)
+
+Would you go down to the basement to check a strange noise? (yes or no)
+
+## Recap
+
+A stranger with a knife starts chasing you down a dark street. What do you do? You chose Run as fast as I can.
+How likely are you to bolt the moment you sense danger? You rated it 4 out of 5.
+Would you go down to the basement to check a strange noise? You said yes.
+
+## Result
+
 You are: The Sprinter
 Smart and fast. You never wait to find out what happens.
 
 You got this because:
 - A stranger with a knife starts chasing you down a dark street. What do you do? You chose Run as fast as I can.
 - How likely are you to bolt the moment you sense danger? You rated it 4 out of 5.
-
-The saved game is missing a piece or has the wrong kind of piece
-The saved settings need a name and, if present, a true or false hints
-The saved settings are not valid text
 ```
 
 ## Getting Started
 
+Start the API first, in one terminal:
+
 ```bash
 pnpm install
-pnpm --filter @platform/cli start play          # You can answer the quiz by prompt
-pnpm --filter @platform/cli start play -n Bo    # You can greet someone by name
-pnpm --filter @platform/cli start replay        # You can replay the saved answers
-pnpm --filter @platform/cli start --help        # You can list the commands
+pnpm --filter @platform/api dev
 ```
+
+Then use the CLI, in another terminal:
+
+```bash
+pnpm --filter @platform/cli start play          # answer the quiz by prompt
+pnpm --filter @platform/cli start play -n Bo    # greet someone by name
+pnpm --filter @platform/cli start replay        # replay the saved answers
+pnpm --filter @platform/cli start --help        # list the commands
+```
+
+If the API is not running, the CLI prints `Cannot reach the server at http://localhost:3000`.
 
 ## Checks
 
-| Command         | What it does                                                          |
-| --------------- | --------------------------------------------------------------------- |
-| `pnpm lint`     | Runs every check in every package through Nx, `tooling` first         |
-| `pnpm -r format`| Formats every package with Prettier                                   |
-| `pnpm nx graph` | Shows how the packages depend on each other                           |
+| Command          | What it does                                                  |
+| ---------------- | ------------------------------------------------------------- |
+| `pnpm lint`      | Runs every check in every package through Nx, `tooling` first |
+| `pnpm -r format` | Formats every package with Prettier                           |
+| `pnpm nx graph`  | Shows how the packages depend on each other                   |
 
 `pnpm lint` runs four checks in each package: TypeScript (`tsc --noEmit`), ESLint, Prettier and knip. Knip runs from the workspace root (`--directory ../..`) so that it can read the catalog in `pnpm-workspace.yaml`.
