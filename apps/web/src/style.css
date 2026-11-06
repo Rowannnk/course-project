@@ -1,0 +1,201 @@
+:root {
+  --bg: #050507;
+  --red: #e50914;
+  --red-soft: rgba(229, 9, 20, 0.35);
+  --text: #f3e9dc;
+  --muted: #a89c92;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1rem 4rem;
+  background: radial-gradient(ellipse at 50% 0%, #2a0508 0%, var(--bg) 65%);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: "Libre Baskerville", Georgia, "Times New Roman", serif;
+  line-height: 1.6;
+}
+
+/* Christmas lights across the top */
+.lights {
+  width: 100%;
+  height: 1.5rem;
+  margin-bottom: 1.5rem;
+  background:
+    radial-gradient(circle at 1rem 50%, #e50914 0.35rem, transparent 0.42rem),
+    radial-gradient(circle at 4rem 50%, #ffd23f 0.35rem, transparent 0.42rem),
+    radial-gradient(circle at 7rem 50%, #2ec4ff 0.35rem, transparent 0.42rem),
+    radial-gradient(circle at 10rem 50%, #7bff6b 0.35rem, transparent 0.42rem);
+  background-size: 12rem 1.5rem;
+  background-repeat: repeat-x;
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+h1 {
+  margin: 0;
+  padding: 0.6rem 1.5rem;
+  display: inline-block;
+  color: var(--red);
+  font-size: clamp(1.6rem, 5vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-top: 3px solid var(--red);
+  border-bottom: 3px solid var(--red);
+  text-shadow:
+    0 0 8px var(--red),
+    0 0 24px rgba(229, 9, 20, 0.7);
+  animation: flicker 6s linear infinite;
+}
+
+.tagline {
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-style: italic;
+  letter-spacing: 0.05em;
+}
+
+/* The quiz card */
+main {
+  width: 100%;
+  max-width: 40rem;
+}
+
+#app {
+  padding: 2rem;
+  background: rgba(12, 0, 3, 0.65);
+  border: 1px solid var(--red-soft);
+  border-radius: 4px;
+  box-shadow:
+    0 0 30px rgba(229, 9, 20, 0.18),
+    inset 0 0 40px rgba(0, 0, 0, 0.6);
+}
+
+#app h2 {
+  margin: 0.5rem 0 1rem;
+  font-size: 1.35rem;
+  line-height: 1.4;
+  text-shadow: 0 0 12px var(--red-soft);
+}
+
+#app h3 {
+  margin: 1.5rem 0 0.5rem;
+  color: var(--red);
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.progress {
+  margin: 0;
+  color: var(--red);
+  font-size: 0.8rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px var(--red);
+}
+
+.hint {
+  margin: 0 0 1.25rem;
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+#app ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#app li {
+  margin-bottom: 0.7rem;
+}
+
+button {
+  width: 100%;
+  padding: 0.85rem 1.1rem;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--red);
+  border-radius: 3px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.1s;
+}
+
+button:hover {
+  background: var(--red-soft);
+  box-shadow:
+    0 0 14px rgba(229, 9, 20, 0.7),
+    inset 0 0 10px rgba(229, 9, 20, 0.3);
+}
+
+button:active {
+  transform: scale(0.99);
+}
+
+button:focus-visible {
+  outline: 2px solid #ffd23f;
+  outline-offset: 2px;
+}
+
+.reasons li {
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--red);
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+@keyframes flicker {
+  0%,
+  19%,
+  21%,
+  23%,
+  54%,
+  56%,
+  100% {
+    opacity: 1;
+  }
+
+  20%,
+  22%,
+  55% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  h1,
+  .lights {
+    animation: none;
+  }
+}

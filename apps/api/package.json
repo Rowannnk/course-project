@@ -17,6 +17,7 @@
     "start": "node ."
   },
   "dependencies": {
+    "@fastify/cors": "^11.4.1",
     "@platform/quiz": "workspace:*",
     "fastify": "^5.8.0"
   },

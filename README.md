@@ -1,6 +1,6 @@
 # Would You Survive the Chase?
 
-A horror-survival personality quiz built with TypeScript for the **Advanced JavaScript and TypeScript** course.
+A horror-survival personality quiz built with TypeScript for the **Advanced JavaScript and TypeScript** course. You can play it in the terminal or in a browser page, and both talk to the same server.
 
 ## About the Quiz
 
@@ -21,6 +21,7 @@ The project is a pnpm workspace managed with Nx:
 
 - `apps/api` (`@platform/api`): a Fastify server that serves a quiz without its scoring, scores the answers of a session, and sends back the result
 - `apps/cli` (`@platform/cli`): the command-line program, which plays a quiz through the API
+- `apps/web` (`@platform/web`): a Vite page that asks the questions one at a time in the browser, shows how far along the quiz is, and shows the result
 - `features/quiz` (`@platform/quiz`): the quiz code, in folders that other code reaches only through their indexes
 - `internal/tooling` (`@platform/tooling`): the shared TypeScript, Prettier and ESLint settings, which the other packages use through `workspace:*`
 - `.github/workflows/quiz.yml`: runs the checks on GitHub when anything in `apps`, `features` or `internal` changes
@@ -29,21 +30,23 @@ The tools every package needs (ESLint, knip, Prettier and TypeScript) are pinned
 
 ## How It Fits Together
 
-The points of every choice stay on the server. The CLI gets each question as a **prompt**, which is a question without its scoring, and sends each answer back as a **submission**, which names the choice it picked by its label. The server finds the real choice, scores it, and sends back the result and the reasons for it. The CLI never sees a point.
+The points of every choice stay on the server. The CLI and the page get each question as a **prompt**, which is a question without its scoring, and send each answer back as a **submission**, which names the choice it picked by its label. The server finds the real choice, scores it, and sends back the result and the reasons for it. Neither client ever sees a point.
 
 Prompts and submissions are made from the real question and answer types with `Omit` and `Pick`, so they cannot drift apart from them.
 
+Both clients make their requests with the functions of the `services` modlet, so the address of the server and the way a request fails are written in one place.
+
 ## The API
 
-The server listens on port 3000. A session id in the `x-session-id` header stands in for signing in.
+The server listens on port 3000 and allows the page to read its replies (CORS). A session id in the `x-session-id` header stands in for signing in.
 
-| Route                   | What it does                                  | Status codes                                  |
-| ----------------------- | --------------------------------------------- | --------------------------------------------- |
-| `GET /quizzes/:name`    | The questions of a quiz, without any scoring  | 200, 404                                      |
-| `POST /session`         | Starts a session for the quiz named in the body | 201 with `session_id`, 400, 404             |
-| `GET /session`          | How far the session has got (`answered`, `total`) | 200, 401                                  |
-| `POST /session/answer`  | Records the answer to the next question       | 204, 400, 401, 409                            |
-| `GET /session/result`   | The result and its reasons, once every question has an answer | 200, 401, 409             |
+| Route                  | What it does                                                  | Status codes                    |
+| ---------------------- | ------------------------------------------------------------- | ------------------------------- |
+| `GET /quizzes/:name`   | The questions of a quiz, without any scoring                  | 200, 404                        |
+| `POST /session`        | Starts a session for the quiz named in the body               | 201 with `session_id`, 400, 404 |
+| `GET /session`         | How far the session has got (`answered`, `total`)             | 200, 401                        |
+| `POST /session/answer` | Records the answer to the next question                       | 204, 400, 401, 409              |
+| `GET /session/result`  | The result and its reasons, once every question has an answer | 200, 401, 409                   |
 
 ## What I Built
 
@@ -55,7 +58,7 @@ In `features/quiz/src`:
 - `quizzes/`: the quiz itself in `survival.json`, and `loadQuiz`, which stops with a clear message when the file is missing, not valid JSON, or not shaped like a quiz
 - `saved/`: `loadSavedGame`, `loadSettings`, `readSavedGame` and `readSettings`, which reject a bad save with its own message
 - `outline/`: `outline` (one line per question with its number, text and kind) and `countKinds` (how many questions of each kind)
-- `services/`: `getQuiz`, `startSession`, `sendAnswer` and `getResult`, which hold the address of the server and turn the ways a request can fail into errors
+- `services/`: `getQuiz`, `startSession`, `sendAnswer`, `getResult` and `getProgress`, which hold the address of the server and turn the ways a request can fail into errors
 
 In `apps/api/src`:
 
@@ -70,11 +73,20 @@ In `apps/cli`:
 - `src/lib/`: where the settings and the saved game are, and the printing shared by both commands
 - `saved/`: the saved game (a submission for each question) and the settings (a name and whether to show hints)
 
+In `apps/web`:
+
+- `src/main.ts`: gets the quiz, starts a session, and for each question asks for the progress, shows the question, and sends the answer
+- `src/ask/`: shows one question with a button for each answer, with a line such as `Question 2 of 3` above it, and hands back the answer that is clicked
+- `src/result/`: shows the result and the reasons for it
+- `src/style.css`: the dark, red-lit look of the page
+
 The shared settings live in `internal/tooling`: a TypeScript base config, a Prettier config, and an ESLint config that takes the directory of the package being linted.
 
 ## Current Stage
 
-`play` and `replay` get the quiz from the API, start a session, send each answer, and print the result the server sends back. An error stops the program with one message and the exit code 1: the server is not running, there is no such quiz, or a saved file is missing or broken. Cancelling a prompt with Ctrl+C exits quietly.
+The quiz can be played in the terminal and in the browser. Both get the quiz from the API, start a session, send each answer, and show the result the server sends back.
+
+In the terminal, an error stops the program with one message and the exit code 1: the server is not running, there is no such quiz, or a saved file is missing or broken. Cancelling a prompt with Ctrl+C exits quietly. In the page, an error is shown in place of the question.
 
 Example output of `replay` (the answers come from `saved/game.json`):
 
@@ -126,7 +138,7 @@ pnpm install
 pnpm --filter @platform/api dev
 ```
 
-Then use the CLI, in another terminal:
+Then play it in the terminal, in another terminal:
 
 ```bash
 pnpm --filter @platform/cli start play          # answer the quiz by prompt
@@ -135,7 +147,13 @@ pnpm --filter @platform/cli start replay        # replay the saved answers
 pnpm --filter @platform/cli start --help        # list the commands
 ```
 
-If the API is not running, the CLI prints `Cannot reach the server at http://localhost:3000`.
+Or play it in the browser:
+
+```bash
+pnpm --filter @platform/web dev                 # open the address Vite prints
+```
+
+If the API is not running, the CLI prints `Cannot reach the server at http://localhost:3000`, and the page shows the same message.
 
 ## Checks
 
